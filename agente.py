@@ -556,6 +556,11 @@ def main():
     log("Scelta di Claude:", json.dumps(scelta, ensure_ascii=False, indent=2))
     tipo = FORZA if FORZA != "auto" else str(scelta.get("tipo", "")).lower()
     sel = [candidati[c] for c in scelta.get("materiali") or [] if c in candidati]
+    if FORZA == "auto" and tipo != "ia" and not sel and ia_per:
+        log("Nessun materiale nuovo utilizzabile: creo un contenuto con l'IA")
+        tipo = "ia"
+        if not scelta.get("scena_ia"):
+            scelta = decidi_post({}, reg, ia_per, oggi)
 
     if tipo in ("foto", "carosello"):
         sel = [s for s in sel if s["tipo"] == "foto"]
