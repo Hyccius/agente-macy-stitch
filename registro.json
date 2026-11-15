@@ -1,6 +1,8 @@
 {
   "usati": [
-    "16Y4zC1820BJZZ5njPvHWlWPphLRkMrU3"
+    "16Y4zC1820BJZZ5njPvHWlWPphLRkMrU3",
+    "1SVBGDykNYUivtZc7tEth5I_O538py4UO",
+    "1NYNoa3_kjh4vgc5iwfclR0s-xVm2hag8"
   ],
   "post": [
     {
@@ -10,6 +12,17 @@
       "didascalia": "Ciao a tutti, sono Macy! 🐾 Questo è il mio sorriso migliore, quello che uso quando sento rumore di biscotti.\nQui con me c'è anche Stitch, il mio fratellino-uragano: piccolo, bianco e pieno di leccate per tutti.\nDa oggi vi raccontiamo le nostre giornate tra coccole, giochi e tanto caos. Siete pronti?\nE voi, a chi dareste il primo biscotto? 🍪",
       "file": [
         "IMG_20240729_184143175~3.jpg"
+      ],
+      "scena_ia": null
+    },
+    {
+      "data": "2026-11-15 22:25",
+      "tipo": "carosello",
+      "ig_id": "18415292335092252",
+      "didascalia": "Shhh... il caos sta dormendo 😴\nStitch ricarica le batterie: domani si ricomincia con agguati di leccate e missioni impossibili.\nDi giorno uragano, di sera un batuffolo che si addormenta ovunque, meglio se addosso a qualcuno 🤍\nE il vostro peloso dove si addormenta di solito?",
+      "file": [
+        "image.jpg",
+        "image.jpg"
       ],
       "scena_ia": null
     }
