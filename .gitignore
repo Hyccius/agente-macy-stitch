@@ -1,0 +1,4 @@
+_lavoro/
+_anteprima/
+__pycache__/
+*.json.key
