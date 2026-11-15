@@ -1,0 +1,66 @@
+name: Agente Instagram Macy e Stitch
+
+on:
+  schedule:
+    # lunedì, mercoledì, venerdì e domenica alle 17:00 UTC (18:00 in Italia d'inverno, 19:00 d'estate)
+    - cron: "0 17 * * 1,3,5,0"
+  workflow_dispatch:
+    inputs:
+      prova:
+        description: "Solo prova (non pubblica nulla, mostra l'anteprima)"
+        type: boolean
+        default: true
+      forza:
+        description: "Tipo di post"
+        type: choice
+        options: [auto, foto, carosello, reel, ia]
+        default: auto
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agente-instagram
+  cancel-in-progress: false
+
+jobs:
+  pubblica:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installa ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Installa librerie
+        run: pip install -q -r requirements.txt
+
+      - name: Configura git
+        run: |
+          git config user.name "agente-macy-stitch"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Avvia l'agente
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          GOOGLE_SA_JSON: ${{ secrets.GOOGLE_SA_JSON }}
+          DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+          PROVA: ${{ github.event_name == 'workflow_dispatch' && inputs.prova }}
+          FORZA: ${{ inputs.forza || 'auto' }}
+        run: python agente.py
+
+      - name: Salva l'anteprima
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anteprima
+          path: _anteprima/
+          if-no-files-found: ignore
