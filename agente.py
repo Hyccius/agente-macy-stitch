@@ -323,6 +323,16 @@ def controlla_ia(path, cani, riferimenti):
 
 
 # ---------------------------------------------------------------- Gemini (immagini IA)
+def aspetto_cani():
+    """Legge da cani.md le righe 'macy: ...' / 'stitch: ...' della sezione sull'aspetto."""
+    descr = {}
+    for riga in CANI_MD.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^\s*(macy|stitch)\s*:\s*(.+?)\s*$", riga, re.I)
+        if m:
+            descr[m.group(1).lower()] = m.group(2)
+    return descr
+
+
 def genera_ia(scena, cani, riferimenti, dest, correzione=""):
     from google import genai
     from google.genai import types
@@ -334,10 +344,13 @@ def genera_ia(scena, cani, riferimenti, dest, correzione=""):
             contents.append(f"Reference photo of {n.capitalize()}:")
             contents.append(im)
     nomi = " and ".join(n.capitalize() for n in cani)
+    descr = aspetto_cani()
+    dettagli = " ".join(f"{n.capitalize()} is a {descr[n]}" for n in cani if descr.get(n))
     prompt = (
         f"Create a brand new photograph featuring {nomi}, the dog(s) shown in the reference photos. "
         "Keep each dog exactly recognizable: same breed, size, fur colors and markings, face and eyes. "
-        f"Scene: {scena} "
+        + (f"Appearance details (follow them strictly): {dettagli} " if dettagli else "")
+        + f"Scene: {scena} "
         "Style: warm, high-quality, cinematic photo for Instagram, natural lighting, realistic anatomy. "
         "No text, no letters, no watermark."
     )
@@ -591,7 +604,7 @@ def main():
     if PROVA:
         for f in files:
             shutil.copy(f, ANTEPRIMA / f.name)
-        (ANTEPRIMA / "didascalia.txt").write_text(testo, encoding="utf-8")
+        (ANTEPRIMA / "didascalia.txt").write_text(testo, encoding="utf-8-sig")
         shutil.rmtree(MEDIA, ignore_errors=True)
         log("\n--- MODALITÀ PROVA: niente pubblicato. Didascalia:\n" + testo)
         return

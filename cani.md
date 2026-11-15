@@ -15,6 +15,11 @@
 ## Il loro rapporto
 - Coppia di opposti: Macy dolce e golosa, Stitch uragano. Lei lo sopporta (quasi sempre), lui la adora e la tormenta.
 
+## Aspetto per le immagini IA
+(Scrivi in inglese, una riga per cane, che inizia con il nome seguito da ":". Se una riga è vuota viene ignorata.)
+macy: black tricolor (black tri) Australian Shepherd: mostly solid black coat, white blaze on the face, white chest and collar, copper/tan markings on the cheeks, above the eyes and on the legs. Keep these exact colors, no merle pattern, no brown or grey coat.
+stitch:
+
 # Tono del profilo
 - Lingua: italiano.
 - Emozionale e divertente insieme: ironia, situazioni buffe, ma anche momenti teneri che scaldano il cuore.
