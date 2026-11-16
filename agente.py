@@ -155,19 +155,28 @@ def jpeg_b64(im, lato=512):
     return base64.b64encode(buf.getvalue()).decode()
 
 
-def prepara_foto(src, dest, solo_4_5=False, max_w=1440):
-    """Instagram accetta proporzioni tra 4:5 (verticale) e 1.91:1 (orizzontale): ritaglia se serve."""
+def prepara_foto(src, dest, rapporto=None, cerca_fuoco=False, max_w=1440):
+    """Instagram accetta proporzioni tra 4:5 (verticale) e 1.91:1 (orizzontale): ritaglia se serve.
+    rapporto: proporzione fissa (es. 0.8 = 4:5, 1.0 = quadrato), usata per i caroselli.
+    cerca_fuoco: se bisogna ritagliare, chiede a Claude dove sono i musi dei cani per non tagliarli."""
     im = apri_foto(src)
     w, h = im.size
     r = w / h
-    lim_min, lim_max = 0.8, (0.8 if solo_4_5 else 1.91)
-    if r < lim_min:  # troppo alta: taglia soprattutto sotto, per non tagliare le teste
+    lim_min, lim_max = (rapporto, rapporto) if rapporto else (0.8, 1.91)
+    serve_taglio = r < lim_min - 0.005 or r > lim_max + 0.005
+    fx, fy = 0.5, 0.4
+    if serve_taglio and cerca_fuoco:
+        fuoco = trova_fuoco(im)
+        if fuoco:
+            fx, fy = fuoco
+            log(f"  Punto da tenere al centro: x={fx:.2f}, y={fy:.2f}")
+    if r < lim_min:  # troppo alta: taglia sopra/sotto
         nh = int(w / lim_min)
-        top = int((h - nh) * 0.3)
+        top = int(min(max(fy * h - nh / 2, 0), h - nh))
         im = im.crop((0, top, w, top + nh))
     elif r > lim_max:  # troppo larga: taglia ai lati
         nw = int(h * lim_max)
-        left = (w - nw) // 2
+        left = int(min(max(fx * w - nw / 2, 0), w - nw))
         im = im.crop((left, 0, left + nw, h))
     if im.width > max_w:
         nuova_h = im.height * max_w / im.width
@@ -176,6 +185,25 @@ def prepara_foto(src, dest, solo_4_5=False, max_w=1440):
         im = im.resize((max_w, nuova_h), Image.LANCZOS)
     im.save(dest, "JPEG", quality=90)
     return dest
+
+
+def trova_fuoco(im):
+    """Chiede a Claude il punto della foto da tenere al centro (i musi dei cani). Restituisce (x, y) tra 0 e 1."""
+    content = [
+        img_block(jpeg_b64(im, 768)),
+        {"type": "text", "text": (
+            "Questa foto verrà ritagliata per Instagram. Indica il punto da tenere al centro del ritaglio: "
+            "il centro del muso del cane (se ci sono due cani, il punto a metà tra i due musi; "
+            "se non ci sono cani, il soggetto principale). "
+            'Rispondi SOLO in JSON: {"x": numero da 0 a 1 contando da sinistra, "y": numero da 0 a 1 contando dall\'alto}'
+        )},
+    ]
+    try:
+        d = estrai_json(claude("Sei un fotografo esperto di ritagli per Instagram.", content, 100))
+        return min(max(float(d["x"]), 0.0), 1.0), min(max(float(d["y"]), 0.0), 1.0)
+    except Exception as e:
+        log("  Non riesco a trovare il punto centrale, taglio al centro:", e)
+        return None
 
 
 def durata_video(path):
@@ -375,7 +403,7 @@ def genera_ia(scena, cani, riferimenti, dest, correzione=""):
                     dati = getattr(getattr(part, "inline_data", None), "data", None)
                     if dati:
                         Image.open(io.BytesIO(dati)).convert("RGB").save(dest, "JPEG", quality=92)
-                        return prepara_foto(dest, dest, solo_4_5=True)
+                        return prepara_foto(dest, dest, rapporto=0.8)
             ultimo_errore = RuntimeError("nessuna immagine nella risposta")
         except Exception as e:
             ultimo_errore = e
@@ -497,6 +525,15 @@ def main():
         d.mkdir(exist_ok=True)
     log(f"Avvio agente · {oggi:%d/%m/%Y %H:%M} · prova={PROVA} · tipo={FORZA}")
 
+    # Le esecuzioni programmate saltano se c'è già stato un post nelle ultime 20 ore
+    # (per esempio uno lanciato a mano, o un ritardo di GitHub).
+    if os.getenv("GITHUB_EVENT_NAME") == "schedule" and reg["post"]:
+        ultimo = datetime.datetime.strptime(reg["post"][-1]["data"], "%Y-%m-%d %H:%M").replace(tzinfo=FUSO)
+        if oggi - ultimo < datetime.timedelta(hours=20):
+            log(f"Ultimo post il {ultimo:%d/%m %H:%M}: troppo recente, oggi salto.")
+            riepilogo(f"⏭️ Saltato: c'è già stato un post il {ultimo:%d/%m alle %H:%M}.")
+            return
+
     # 1) Drive
     svc = drive()
     materiali, rif_drive = esplora(svc, os.environ["DRIVE_FOLDER_ID"])
@@ -585,9 +622,13 @@ def main():
     # 3) Preparo i file
     files = []
     if tipo == "foto":
-        files = [prepara_foto(sel[0]["path"], MEDIA / f"{stamp}_1.jpg")]
+        files = [prepara_foto(sel[0]["path"], MEDIA / f"{stamp}_1.jpg", cerca_fuoco=True)]
     elif tipo == "carosello":
-        files = [prepara_foto(s["path"], MEDIA / f"{stamp}_{i}.jpg", solo_4_5=True) for i, s in enumerate(sel, 1)]
+        # se la maggior parte delle foto è orizzontale uso il quadrato, altrimenti il 4:5 (si taglia meno)
+        orizzontali = sum(1 for s in sel if apri_foto(s["path"]).width > apri_foto(s["path"]).height)
+        rapp = 1.0 if orizzontali * 2 > len(sel) else 0.8
+        files = [prepara_foto(s["path"], MEDIA / f"{stamp}_{i}.jpg", rapporto=rapp, cerca_fuoco=True)
+                 for i, s in enumerate(sel, 1)]
     elif tipo == "reel":
         files = [prepara_video(sel[0]["path"], LAVORO / f"{stamp}_reel.mp4")]
     else:
