@@ -2,7 +2,11 @@
   "usati": [
     "16Y4zC1820BJZZ5njPvHWlWPphLRkMrU3",
     "1SVBGDykNYUivtZc7tEth5I_O538py4UO",
-    "1NYNoa3_kjh4vgc5iwfclR0s-xVm2hag8"
+    "1NYNoa3_kjh4vgc5iwfclR0s-xVm2hag8",
+    "1sb8vjkeXvLt4Sdon8TSs8ncu6W0T-_x3",
+    "14QasUcubLywdI3-yEvqR8XrLvS1eDiUg",
+    "1h0Q4pcLmL4ct59gfou8G2aBfUTVxd90S",
+    "1WJCgXMTn2o781g4PpSyNWUqGEQOLAyH7"
   ],
   "post": [
     {
@@ -23,6 +27,19 @@
       "file": [
         "image.jpg",
         "image.jpg"
+      ],
+      "scena_ia": null
+    },
+    {
+      "data": "2026-11-19 00:07",
+      "tipo": "carosello",
+      "ig_id": "18037384349887407",
+      "didascalia": "Throwback Thursday 🐾\nMacy cucciola: nel cestino, nell'erba con il suo fiorellino, sul plaid e addormentata tra le braccia.\n\"Lo so, lo so... già allora ero irresistibile. E già allora sapevo che con gli occhioni si ottiene tutto, biscotti compresi.\"\nQuale foto vi scioglie di più? 💛",
+      "file": [
+        "Da_pubblicare/IMG_20231029_081208.jpg",
+        "Da_pubblicare/IMG_20231012_135541.jpg",
+        "Da_pubblicare/IMG_20231022_165840.jpg",
+        "Da_pubblicare/IMG_20231011_120349.jpg"
       ],
       "scena_ia": null
     }
